@@ -18,16 +18,7 @@ BIN_DIR = VENV / ("Scripts" if IS_WINDOWS else "bin")
 PORT = int(os.getenv("FMA_PORT", "8765"))
 URL = f"http://127.0.0.1:{PORT}"
 
-# Walmart PyPI mirror
-PYPI_INDEX = "https://pypi.ci.artifacts.walmart.com/artifactory/api/pypi/external-pypi/simple"
-PYPI_HOST = "pypi.ci.artifacts.walmart.com"
 
-# Walmart proxy for npm
-NPM_ENV = {
-    **os.environ,
-    "HTTP_PROXY": "http://sysproxy.wal-mart.com:8080",
-    "HTTPS_PROXY": "http://sysproxy.wal-mart.com:8080",
-}
 
 
 # ── Terminal helpers ───────────────────────────────────────────────
@@ -113,21 +104,16 @@ def setup_venv() -> None:
     step("Setting up Python environment...")
     if not VENV.exists():
         run(["uv", "venv", str(VENV)])
-    run(
-        ["uv", "pip", "install", "-e", ".[dev]",
-         "--index-url", PYPI_INDEX,
-         "--allow-insecure-host", PYPI_HOST],
-        cwd=BASE,
-    )
+    run(["uv", "pip", "install", "-e", ".[dev]"], cwd=BASE)
     print("  Dependencies installed ✅")
 
 
 def setup_frontend() -> None:
     step("Setting up frontend...")
     if not (FRONTEND / "node_modules").exists():
-        run(["npm", "install"], cwd=FRONTEND, env=NPM_ENV)
+        run(["npm", "install"], cwd=FRONTEND)
     step("Building frontend...")
-    run(["npm", "run", "build"], cwd=FRONTEND, env=NPM_ENV)
+    run(["npm", "run", "build"], cwd=FRONTEND)
     print("  Frontend built ✅")
 
 
