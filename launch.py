@@ -55,29 +55,54 @@ def check_node() -> None:
     print(f"  Node {result.stdout.strip()} ✅")
 
 
+def check_uv() -> None:
+    step("Checking uv...")
+    if not shutil.which("uv"):
+        print(red("uv not found! Install: curl -LsSf https://astral.sh/uv/install.sh | sh"))
+        sys.exit(1)
+    result = subprocess.run(["uv", "--version"], capture_output=True, text=True)
+    print(f"  {result.stdout.strip()} ✅")
+
+
+PYPI_INDEX = "https://pypi.ci.artifacts.walmart.com/artifactory/api/pypi/external-pypi/simple"
+PYPI_HOST = "pypi.ci.artifacts.walmart.com"
+
+
 def setup_venv() -> None:
     step("Setting up Python environment...")
     if not VENV.exists():
-        run([sys.executable, "-m", "venv", str(VENV)])
-    pip = str(VENV / ("Scripts" if platform.system() == "Windows" else "bin") / "pip")
-    run([pip, "install", "-e", ".[dev]"], cwd=BASE)
+        run(["uv", "venv", str(VENV)])
+    run(
+        ["uv", "pip", "install", "-e", ".[dev]",
+         "--index-url", PYPI_INDEX,
+         "--allow-insecure-host", PYPI_HOST],
+        cwd=BASE,
+    )
     print("  Dependencies installed ✅")
+
+
+# Walmart proxy for npm to reach the public registry
+NPM_ENV = {
+    **os.environ,
+    "HTTP_PROXY": "http://sysproxy.wal-mart.com:8080",
+    "HTTPS_PROXY": "http://sysproxy.wal-mart.com:8080",
+}
 
 
 def setup_frontend() -> None:
     step("Setting up frontend...")
     if not (FRONTEND / "node_modules").exists():
-        run(["npm", "install"], cwd=FRONTEND)
+        subprocess.run(["npm", "install"], cwd=FRONTEND, env=NPM_ENV, check=True)
     step("Building frontend...")
-    run(["npm", "run", "build"], cwd=FRONTEND)
+    subprocess.run(["npm", "run", "build"], cwd=FRONTEND, env=NPM_ENV, check=True)
     print("  Frontend built ✅")
 
 
 def start_server() -> None:
     step(f"Starting Fullmetal Anatomist on {URL}")
-    python = str(VENV / ("Scripts" if platform.system() == "Windows" else "bin") / "python")
+    # Use whichever python is active (works with activated venv)
     proc = subprocess.Popen(
-        [python, "-m", "uvicorn", "backend.main:app",
+        [sys.executable, "-m", "uvicorn", "backend.main:app",
          "--host", "127.0.0.1", "--port", str(PORT)],
         cwd=str(BASE),
     )
@@ -100,6 +125,7 @@ def main() -> None:
 
     check_python()
     check_node()
+    check_uv()
     setup_venv()
     setup_frontend()
     start_server()
