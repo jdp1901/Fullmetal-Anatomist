@@ -11,45 +11,27 @@ from backend.encryption import decrypt_key
 # Provider → default model mapping
 DEFAULT_MODELS: dict[str, str] = {
     "gemini": "gemini-2.5-flash",
-    "openai": "gpt-4o",
-    "anthropic": "claude-3-7-sonnet-20250219",
+    "openai": "gpt-5.4-mini",
+    "anthropic": "claude-sonnet-4-6",
 }
 
-# NOTE: Model IDs change frequently. Verify against provider docs:
-#   Gemini:    https://ai.google.dev/models
-#   OpenAI:    https://platform.openai.com/docs/models
-#   Anthropic: https://docs.anthropic.com/claude/docs/models-overview
 MODEL_OPTIONS: dict[str, list[str]] = {
     "gemini": [
-        # Gemini 2.5 series (latest gen)
+        "gemini-3.1-pro-preview",
+        "gemini-3-flash-preview",
+        "gemini-3.1-flash-lite-preview",
         "gemini-2.5-pro",
         "gemini-2.5-flash",
-        # Gemini 2.0 series
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        # Gemini 1.5 series (previous gen, still available)
-        "gemini-1.5-pro",
-        "gemini-1.5-flash",
+        "gemini-2.5-flash-lite",
     ],
     "openai": [
-        # GPT-4o series
-        "gpt-4o",
-        "gpt-4o-mini",
-        # o-series reasoning models
-        "o3",
-        "o3-mini",
-        "o4-mini",
-        "o1",
-        "o1-mini",
+        "gpt-5.4",
+        "gpt-5.4-mini",
     ],
     "anthropic": [
-        # Claude 3.7 (latest with extended thinking)
-        "claude-3-7-sonnet-20250219",
-        # Claude 3.5 series
-        "claude-3-5-sonnet-20241022",
-        "claude-3-5-haiku-20241022",
-        # Claude 3 Opus (heavyweight)
-        "claude-3-opus-20240229",
+        "claude-opus-4-6",
+        "claude-sonnet-4-6",
+        "claude-haiku-4-5-20251001",
     ],
 }
 
