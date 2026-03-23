@@ -13,8 +13,35 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 FRONTEND = BASE / "frontend"
 VENV = BASE / "venv"
+IS_WINDOWS = platform.system() == "Windows"
+BIN_DIR = VENV / ("Scripts" if IS_WINDOWS else "bin")
 PORT = int(os.getenv("FMA_PORT", "8765"))
 URL = f"http://127.0.0.1:{PORT}"
+
+# Walmart PyPI mirror
+PYPI_INDEX = "https://pypi.ci.artifacts.walmart.com/artifactory/api/pypi/external-pypi/simple"
+PYPI_HOST = "pypi.ci.artifacts.walmart.com"
+
+# Walmart proxy for npm
+NPM_ENV = {
+    **os.environ,
+    "HTTP_PROXY": "http://sysproxy.wal-mart.com:8080",
+    "HTTPS_PROXY": "http://sysproxy.wal-mart.com:8080",
+}
+
+
+# ── Terminal helpers ───────────────────────────────────────────────
+
+def _enable_ansi_windows() -> None:
+    """Enable ANSI escape codes on Windows 10+ terminals."""
+    if not IS_WINDOWS:
+        return
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+    except Exception:
+        pass
 
 
 def bold(text: str) -> str:
@@ -33,15 +60,20 @@ def step(msg: str) -> None:
     print(f"\n{teal('⚗️')} {bold(msg)}")
 
 
-def run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> None:
-    subprocess.run(cmd, cwd=cwd, check=check)
+def run(cmd: list[str], cwd: Path | None = None, check: bool = True,
+        env: dict | None = None) -> None:
+    """Run a subprocess. Uses shell=True on Windows for .cmd scripts."""
+    subprocess.run(cmd, cwd=cwd, check=check, env=env, shell=IS_WINDOWS)
 
+
+# ── Checks ────────────────────────────────────────────────────────
 
 def check_python() -> None:
     step("Checking Python version...")
     v = sys.version_info
     if v < (3, 11):
         print(red(f"Python 3.11+ required, got {v.major}.{v.minor}.{v.micro}"))
+        print("  Download from: https://www.python.org/downloads/")
         sys.exit(1)
     print(f"  Python {v.major}.{v.minor}.{v.micro} ✅")
 
@@ -49,24 +81,33 @@ def check_python() -> None:
 def check_node() -> None:
     step("Checking Node.js...")
     if not shutil.which("node"):
-        print(red("Node.js not found! Install from https://nodejs.org/"))
+        print(red("Node.js not found!"))
+        print("  Download from: https://nodejs.org/ (pick the LTS version)")
         sys.exit(1)
-    result = subprocess.run(["node", "--version"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["node", "--version"], capture_output=True, text=True, shell=IS_WINDOWS,
+    )
     print(f"  Node {result.stdout.strip()} ✅")
 
 
 def check_uv() -> None:
     step("Checking uv...")
     if not shutil.which("uv"):
-        print(red("uv not found! Install: curl -LsSf https://astral.sh/uv/install.sh | sh"))
+        print(red("uv not found!"))
+        if IS_WINDOWS:
+            print('  Install: powershell -ExecutionPolicy ByPass -c '
+                  '"irm https://astral.sh/uv/install.ps1 | iex"')
+        else:
+            print("  Install: curl -LsSf https://astral.sh/uv/install.sh | sh")
+        print("  Then close & re-open your terminal.")
         sys.exit(1)
-    result = subprocess.run(["uv", "--version"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "--version"], capture_output=True, text=True, shell=IS_WINDOWS,
+    )
     print(f"  {result.stdout.strip()} ✅")
 
 
-PYPI_INDEX = "https://pypi.ci.artifacts.walmart.com/artifactory/api/pypi/external-pypi/simple"
-PYPI_HOST = "pypi.ci.artifacts.walmart.com"
-
+# ── Setup ────────────────────────────────────────────────────────
 
 def setup_venv() -> None:
     step("Setting up Python environment...")
@@ -81,32 +122,30 @@ def setup_venv() -> None:
     print("  Dependencies installed ✅")
 
 
-# Walmart proxy for npm to reach the public registry
-NPM_ENV = {
-    **os.environ,
-    "HTTP_PROXY": "http://sysproxy.wal-mart.com:8080",
-    "HTTPS_PROXY": "http://sysproxy.wal-mart.com:8080",
-}
-
-
 def setup_frontend() -> None:
     step("Setting up frontend...")
     if not (FRONTEND / "node_modules").exists():
-        subprocess.run(["npm", "install"], cwd=FRONTEND, env=NPM_ENV, check=True)
+        run(["npm", "install"], cwd=FRONTEND, env=NPM_ENV)
     step("Building frontend...")
-    subprocess.run(["npm", "run", "build"], cwd=FRONTEND, env=NPM_ENV, check=True)
+    run(["npm", "run", "build"], cwd=FRONTEND, env=NPM_ENV)
     print("  Frontend built ✅")
 
 
+# ── Server ───────────────────────────────────────────────────────
+
 def start_server() -> None:
     step(f"Starting Fullmetal Anatomist on {URL}")
-    # Use whichever python is active (works with activated venv)
+    python_exe = str(BIN_DIR / ("python.exe" if IS_WINDOWS else "python"))
+    # Fall back to sys.executable if venv python doesn't exist
+    if not Path(python_exe).exists():
+        python_exe = sys.executable
+
     proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "backend.main:app",
+        [python_exe, "-m", "uvicorn", "backend.main:app",
          "--host", "127.0.0.1", "--port", str(PORT)],
         cwd=str(BASE),
     )
-    time.sleep(2)
+    time.sleep(3)
     webbrowser.open(URL)
     print(f"\n{teal('⚗️')} {bold('Fullmetal Anatomist is running!')}")
     print(f"  Open {bold(URL)} in your browser")
@@ -118,7 +157,10 @@ def start_server() -> None:
         proc.terminate()
 
 
+# ── Main ─────────────────────────────────────────────────────────
+
 def main() -> None:
+    _enable_ansi_windows()
     print(f"\n{teal('⚗️')} {bold('Fullmetal Anatomist')} — Starting up...")
     print('  "Equivalent Exchange: You give it textbook chapters,"')
     print('  "it gives you passing grades."\n')
