@@ -15,7 +15,7 @@ export default function SetupWizard({ settings, onSave, onTest }: Props) {
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const models = settings.model_options[provider] || [];
+
 
   const handleTest = async () => {
     setTesting(true);
@@ -97,7 +97,9 @@ export default function SetupWizard({ settings, onSave, onTest }: Props) {
             value={model}
             onChange={e => setModel(e.target.value)}
           >
-            {models.map(m => <option key={m} value={m}>{m}</option>)}
+            {(settings.model_options[provider] || []).map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
           </select>
         </div>
 
