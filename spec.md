@@ -679,3 +679,26 @@ is self-contained and testable. Key principles:
 
 The agent should be able to `cat SPEC.md` and build this thing
 phase by phase. Let's transmute some knowledge. ⚗️
+
+## Supplemental information provided by med student 
+
+here are two of the worksheets i have made recently and this is usually the prompt i use to make them:
+Role: Act as an expert medical educator specializing in board exam preparation (USMLE/COMLEX).
+Task: Using the provided medical lecture text, create a comprehensive fill-in-the-blank worksheet covering ALL major topics, including anatomy, physiology, pathophysiology, diagnostics, pharmacology, and clinical pearls.
+Content Requirements:
+
+Medical School Level: Use precise, high-yield terminology.
+Exhaustive Coverage: Create a minimum of 60 questions.
+Organization: Group questions into logical sections with concise headers (e.g., Pathophysiology, Clinical Presentation, Diagnostics, Treatment).
+Strict Formatting Instructions:
+
+Instructions at Top: Begin the document with: 'Fill in each blank within the sentences with the correct term or phrase from the lecture material. Write clearly in the provided spaces.'
+Embedded Blanks: Place blanks ONLY within naturally reading sentences using single underscores (e.g., "The ______________ is the primary pathogen in neonates.")
+No Decoration: Do NOT use bolding within the sentences, underlines beneath the text, or bullet points.
+Sequential Numbering: Number questions 1 through 80+ sequentially across the entire document.
+Compact Layout: Keep the format extremely compact. Do not put every question on a new line; place 1–3 questions per line to save space.
+No Extra Spacing: Do not add extra blank lines between questions or sections.
+Ensure each number question has its own line.
+No Objectives: Do not include a "Learning Objectives" or "Introduction" section
+
+It appears like they use both slides and text info uploaded as pdf. 
