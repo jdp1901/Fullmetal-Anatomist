@@ -66,7 +66,7 @@ def load_settings(session: Session) -> AppSettings | None:
 
 def get_agent(
     system_prompt: str,
-    result_type=str,
+    output_type=str,
     session: Session | None = None,
     tools: list | None = None,
 ) -> Agent:
@@ -93,7 +93,7 @@ def get_agent(
     agent = Agent(
         model_name,
         system_prompt=system_prompt,
-        result_type=result_type,
+        output_type=result_type,
     )
     if tools:
         for tool in tools:
@@ -107,6 +107,6 @@ async def test_connection(session: Session) -> dict:
     try:
         agent = get_agent("You are a helpful assistant.", session=session)
         result = await agent.run("Say 'OK' and nothing else.")
-        return {"success": True, "message": result.data}
+        return {"success": True, "message": result.output}
     except Exception as e:
         return {"success": False, "message": str(e)}

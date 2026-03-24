@@ -86,7 +86,7 @@ async def generate_worksheet(
     try:
         agent: Agent = get_agent(
             system_prompt=SYSTEM_PROMPT,
-            result_type=GeneratedWorksheet,
+            output_type=GeneratedWorksheet,
             session=session,
         )
 
@@ -97,7 +97,7 @@ async def generate_worksheet(
         )
 
         result = await agent.run(user_prompt)
-        generated: GeneratedWorksheet = result.data
+        generated: GeneratedWorksheet = result.output
 
         # Persist questions
         order = 1
