@@ -133,10 +133,16 @@ def start_server() -> None:
     if not Path(python_exe).exists():
         python_exe = sys.executable
 
+    # IMPORTANT: Unset proxy vars so LLM API calls aren't blocked by corporate proxies
+    env = os.environ.copy()
+    for key in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'NO_PROXY', 'no_proxy']:
+        env.pop(key, None)
+
     proc = subprocess.Popen(
         [python_exe, "-m", "uvicorn", "backend.main:app",
          "--host", "127.0.0.1", "--port", str(PORT)],
         cwd=str(BASE),
+        env=env,  # Use the cleaned environment
     )
     time.sleep(3)
     webbrowser.open(URL)
