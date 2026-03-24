@@ -133,7 +133,7 @@ def start_server() -> None:
     if not Path(python_exe).exists():
         python_exe = sys.executable
 
-    # IMPORTANT: Unset proxy vars so LLM API calls aren't blocked by corporate proxies
+    # Strip proxy env vars so LLM API calls go direct (avoids corporate proxy blocks)
     env = os.environ.copy()
     for key in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'NO_PROXY', 'no_proxy']:
         env.pop(key, None)

@@ -239,9 +239,10 @@ Python wasn't added to PATH during install. Either:
 
 ### "npm install" hangs forever
 
-You're probably behind a corporate proxy. The launch script handles this
-automatically with Walmart's proxy settings. If you're not on Walmart's
-network, remove the proxy env vars in `launch.py`.
+You might be behind a corporate proxy. If you are, you may need to configure
+npm with your proxy settings. The `launch.py` script automatically strips
+proxy environment variables from the backend server to ensure LLM API calls
+work correctly.
 
 ### "uv not found"
 
