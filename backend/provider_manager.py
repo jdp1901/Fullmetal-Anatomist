@@ -93,7 +93,7 @@ def get_agent(
     agent = Agent(
         model_name,
         system_prompt=system_prompt,
-        output_type=result_type,
+        output_type=output_type,
     )
     if tools:
         for tool in tools:
