@@ -104,17 +104,24 @@ def setup_venv() -> None:
     step("Setting up Python environment...")
     if not VENV.exists():
         run(["uv", "venv", str(VENV)])
-    run(["uv", "pip", "install", "-e", ".[dev]"], cwd=BASE)
-    print("  Dependencies installed ✅")
+        run(["uv", "pip", "install", "-e", ".[dev]"], cwd=BASE)
+        print("  Dependencies installed ✅")
+    else:
+        print("  venv already exists, skipping. (Delete venv/ to reinstall.)")
 
 
 def setup_frontend() -> None:
     step("Setting up frontend...")
-    if not (FRONTEND / "node_modules").exists():
+    needs_install = not (FRONTEND / "node_modules").exists()
+    needs_build = not (FRONTEND / "dist").exists()
+
+    if needs_install:
         run(["npm", "install"], cwd=FRONTEND)
-    step("Building frontend...")
-    run(["npm", "run", "build"], cwd=FRONTEND)
-    print("  Frontend built ✅")
+    if needs_build:
+        run(["npm", "run", "build"], cwd=FRONTEND)
+        print("  Frontend built ✅")
+    else:
+        print("  Frontend already built, skipping. (Delete frontend/dist/ to rebuild.)")
 
 
 # ── Server ───────────────────────────────────────────────────────
@@ -156,6 +163,7 @@ def main() -> None:
     check_uv()
     setup_venv()
     setup_frontend()
+    print()
     start_server()
 
 
