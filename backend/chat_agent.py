@@ -37,6 +37,10 @@ async def stream_chat(
     session: Session | None = None,
 ) -> AsyncIterator[str]:
     """Stream a chat response as SSE data lines."""
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"stream_chat called with message: {message[:50]}...")
+    
     own_session = session is None
     if own_session:
         session = next(get_session())
@@ -50,13 +54,23 @@ async def stream_chat(
                 f"Content preview: {chapter.raw_content[:5000]}\n"
             )
 
-    agent = get_agent(
-        system_prompt=CHAT_SYSTEM_PROMPT + context,
-        session=session,
-    )
+    try:
+        agent = get_agent(
+            system_prompt=CHAT_SYSTEM_PROMPT + context,
+            session=session,
+        )
+        logger.info("Agent created successfully")
 
-    async with agent.run_stream(message) as result:
-        async for chunk in result.stream_text(delta=True):
-            yield f"data: {json.dumps({'type': 'delta', 'content': chunk})}\n\n"
+        async with agent.run_stream(message) as result:
+            logger.info("Entering stream loop")
+            chunk_count = 0
+            async for chunk in result.stream_text(delta=True):
+                chunk_count += 1
+                yield f"data: {json.dumps({'type': 'delta', 'content': chunk})}\n\n"
+            logger.info(f"Stream completed with {chunk_count} chunks")
 
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    except Exception as e:
+        logger.error(f"Error in stream_chat: {e}", exc_info=True)
+        yield f"data: {json.dumps({'type': 'error', 'content': str(e)})}\n\n"
+        raise

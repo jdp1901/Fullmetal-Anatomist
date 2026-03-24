@@ -85,8 +85,12 @@ export const api = {
           try {
             const data = JSON.parse(line.slice(6));
             if (data.type === 'delta') yield data.content;
+            if (data.type === 'error') throw new Error(data.content);
             if (data.type === 'done') return;
-          } catch { /* skip malformed */ }
+          } catch (e) {
+            if (e instanceof Error) throw e;
+            /* skip malformed */
+          }
         }
       }
     }
