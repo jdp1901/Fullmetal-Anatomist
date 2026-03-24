@@ -20,6 +20,7 @@ class SettingsOut(BaseModel):
     llm_provider: str
     model_name: str
     has_api_key: bool
+    api_key: str | None = None
     model_options: dict[str, list[str]] = MODEL_OPTIONS
 
 
@@ -38,6 +39,7 @@ def get_settings(session: Session = Depends(get_session)):
         llm_provider=row.llm_provider,
         model_name=row.model_name,
         has_api_key=bool(row.api_key_encrypted),
+        api_key=decrypt_key(row.api_key_encrypted) if row.api_key_encrypted else None,
     )
 
 
@@ -67,6 +69,7 @@ def update_settings(body: SettingsIn, session: Session = Depends(get_session)):
         llm_provider=row.llm_provider,
         model_name=row.model_name,
         has_api_key=bool(row.api_key_encrypted),
+        api_key=decrypt_key(row.api_key_encrypted) if row.api_key_encrypted else None,
     )
 
 

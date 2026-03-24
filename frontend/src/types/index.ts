@@ -4,6 +4,7 @@ export interface Settings {
   llm_provider: string;
   model_name: string;
   has_api_key: boolean;
+  api_key: string | null;
   model_options: Record<string, string[]>;
 }
 

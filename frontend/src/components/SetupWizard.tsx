@@ -78,8 +78,8 @@ export default function SetupWizard({ settings, onSave, onTest }: Props) {
           </label>
           <input
             id="api-key"
-            type="password"
-            className="input font-mono"
+            type="text"
+            className="input font-mono text-sm"
             placeholder="Paste your API key here"
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}

@@ -38,7 +38,7 @@ export default function App() {
             onTest={testConnection}
           />
         } />
-        <Route element={<Layout settings={settings!} />}>
+        <Route element={<Layout settings={settings!} onSave={update} />}>
           <Route path="/" element={<ChatView />} />
           <Route path="/worksheet/:id" element={<WorksheetViewer />} />
           <Route path="/library" element={<WorksheetLibrary />} />

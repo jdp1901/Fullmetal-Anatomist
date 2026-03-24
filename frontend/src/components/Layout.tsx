@@ -8,9 +8,10 @@ import SettingsModal from './SettingsModal';
 
 interface Props {
   settings: Settings;
+  onSave: (data: any) => Promise<any>;
 }
 
-export default function Layout({ settings }: Props) {
+export default function Layout({ settings, onSave }: Props) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -41,6 +42,7 @@ export default function Layout({ settings }: Props) {
       {showSettings && (
         <SettingsModal
           settings={settings}
+          onSave={onSave}
           onClose={() => setShowSettings(false)}
         />
       )}

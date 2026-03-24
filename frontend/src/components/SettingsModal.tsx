@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { api } from '../api/client';
 import type { Settings } from '../types';
 
 interface Props {
   settings: Settings;
+  onSave: (data: any) => Promise<any>;
   onClose: () => void;
 }
 
-export default function SettingsModal({ settings, onClose }: Props) {
+export default function SettingsModal({ settings, onSave, onClose }: Props) {
   const [provider, setProvider] = useState(settings.llm_provider);
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(settings.api_key ?? '');
   const [model, setModel] = useState(settings.model_name);
   const [saving, setSaving] = useState(false);
 
@@ -20,7 +20,7 @@ export default function SettingsModal({ settings, onClose }: Props) {
     try {
       const data: any = { llm_provider: provider, model_name: model };
       if (apiKey) data.api_key = apiKey;
-      await api.updateSettings(data);
+      await onSave(data);
       onClose();
     } finally {
       setSaving(false);
@@ -36,7 +36,10 @@ export default function SettingsModal({ settings, onClose }: Props) {
         <div>
           <label className="block text-sm text-gray-300 mb-1" htmlFor="s-provider">Provider</label>
           <select id="s-provider" className="input" value={provider}
-            onChange={e => { setProvider(e.target.value); setModel(settings.model_options[e.target.value]?.[0] || ''); }}>
+            onChange={e => {
+              setProvider(e.target.value);
+              setModel(settings.model_options[e.target.value]?.[0] || '');
+            }}>
             <option value="gemini">Google Gemini</option>
             <option value="openai">OpenAI</option>
             <option value="anthropic">Anthropic</option>
@@ -44,9 +47,15 @@ export default function SettingsModal({ settings, onClose }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-300 mb-1" htmlFor="s-key">API Key (leave blank to keep current)</label>
-          <input id="s-key" type="password" className="input font-mono" placeholder="••••••••"
-            value={apiKey} onChange={e => setApiKey(e.target.value)} />
+          <label className="block text-sm text-gray-300 mb-1" htmlFor="s-key">API Key</label>
+          <input
+            id="s-key"
+            type="text"
+            className="input font-mono text-sm"
+            placeholder="Paste your API key here"
+            value={apiKey}
+            onChange={e => setApiKey(e.target.value)}
+          />
         </div>
 
         <div>
